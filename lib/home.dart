@@ -16,6 +16,13 @@ class _HomePageState extends State<HomePage> {
   CameraController? cameraController;
   String output = '';
 
+  @override
+  void initState() {
+    super.initState();
+    loadCamera();
+    loadModel();
+  }
+
   loadCamera() {
     cameraController = CameraController(cameras![0], ResolutionPreset.medium);
     cameraController!.initialize().then((value) {
@@ -23,8 +30,8 @@ class _HomePageState extends State<HomePage> {
         return;
       } else {
         setState(() {
-          cameraController!.startImageStream((ImageStream) {
-            cameraImage = ImageStream;
+          cameraController!.startImageStream((imageStream) {
+            cameraImage = imageStream;
             runModel();
           });
         });
@@ -46,11 +53,11 @@ class _HomePageState extends State<HomePage> {
           numResults: 2,
           threshold: 0.1,
           asynch: true);
-      predictions!.forEach((element) {
+      for (var element in predictions!) {
         setState(() {
           output = element['label'];
         });
-      });
+      }
     }
   }
 
@@ -63,9 +70,28 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Test App Live'),
+        title: const Text('Test App Live'),
       ),
-      body: Column(),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height * 0.7,
+              width: MediaQuery.of(context).size.width,
+              child: !cameraController!.value.isInitialized
+                  ? Container()
+                  : AspectRatio(
+                      aspectRatio: cameraController!.value.aspectRatio,
+                      child: CameraPreview(cameraController!)),
+            ),
+          ),
+          Text(
+            output,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          )
+        ],
+      ),
     );
   }
 }
